@@ -14,7 +14,14 @@ function createServer(portOrSocket){
 			else clientData+=data;
 		});
 	});
-	server.listen(portOrSocket,err=>console.log(err?`Server cant start '${portOrSocket}' at ${typeof(portOrSocket)==="number"?"port":"socket"}!`:`Server started at '${typeof(portOrSocket)==="number"?"port":"socket"}'`));
+	server.listen(portOrSocket,err=>{
+		if(err) throw new Error("can not listen on "+portOrSocket);
+		console.log("Listen on "+portOrSocket);
+	});
+	process.on("SIGINT",()=>{
+		console.log("shutdown server...");
+		server.close();
+	});
 }
 
 module.exports=createServer;
