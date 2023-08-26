@@ -1,0 +1,14 @@
+{
+	"name": "local-communication",
+	"version": "1.0.0",
+	"description": "",
+	"main": "client.js",
+	"scripts": {},
+	"keywords": [
+		"net",
+		"local-communication",
+		"fileStreams"
+	],
+	"author": "LFF5644",
+	"license": "ISC"
+}
