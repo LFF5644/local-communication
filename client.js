@@ -2,12 +2,14 @@ const net=require("net");
 const splitter="\n";
 
 function onEvent(client,eventName,cb){
-	client.on("data",msg=>{
-		if(msg.startsWith(eventName+"|")||eventName==="*"){
-			let data=substring((eventName+"|").length,splitter.length);
-			try{data=JSON.parse(data)}
+	client.on("data",data=>{
+		if(data.startsWith(eventName+"|")||eventName==="*"){
+			data=data.trim();
+			let [event,arg]=data.split("|");
+			try{arg=JSON.parse(arg)}
 			catch(e){}
-			cb(data);
+			if(eventName==="*") cb(event,arg);
+			else cb(arg);
 		}
 	});
 }
@@ -18,11 +20,11 @@ function makeEvent(client,eventName,arg){
 
 module.exports=(portOrSocket)=>{
 	const client=net.connect(typeof(portOrSocket)==="string"?portOrSocket:{path:portOrSocket});
-	client.setDefaultEncoding("utf-8");
+	client.setEncoding("utf-8");
 	process.on("exit",()=>client.end());
 	return{
 		on: (eventName,cb)=> onEvent(client,eventName,cb),
 		makeEvent: (eventName,arg)=> makeEvent(client,eventName,arg),
-		end: client.end,
+		end: ()=>client.end(),
 	};
 };

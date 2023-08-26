@@ -1,17 +1,32 @@
 const net=require("net");
 const splitter="\n";
 
+function writeData(clients,data){
+	if(!data.endsWith(splitter)) data+=splitter;
+	for(const client of clients){
+		client.write(data);
+	}
+}
 function createServer(portOrSocket){
+	let clients=new Set();
 	const server=net.createServer(client=>{
-		client.setDefaultEncoding("utf-8");
+		client.setEncoding("utf-8");
+		clients.add(client);
+		//const id=String(Date.now())+String(Math.random())+String(Math.random()).split(".").join("");
+
 		let clientData="";
 		client.on("data",data=>{
 			if(data.endsWith(splitter)){
-				const message=clientData+data;
+				let message=clientData+data;
+				message=message.trim();
 				clientData="";
-				server.write(message);
+				console.log(message);
+				writeData(clients,message);
 			}
 			else clientData+=data;
+		});
+		client.on("close",()=>{
+			clients.delete(client);
 		});
 	});
 	server.listen(portOrSocket,err=>{
@@ -20,6 +35,10 @@ function createServer(portOrSocket){
 	});
 	process.on("SIGINT",()=>{
 		console.log("shutdown server...");
+		for(const client of clients){
+			client.end();
+			clients.delete(client);
+		}
 		server.close();
 	});
 }
