@@ -19,12 +19,20 @@ function makeEvent(client,eventName,arg){
 }
 
 module.exports=(portOrSocket)=>{
-	const client=net.connect(typeof(portOrSocket)==="string"?portOrSocket:{path:portOrSocket});
+	const client=new net.Socket();
+	process.on("exit",()=>{
+		client.end();
+		client.destroy();
+	});
+	client.on("error",err=>{
+		console.log("client error:",err);
+	});
+	client.connect(portOrSocket);
 	client.setEncoding("utf-8");
-	process.on("exit",()=>client.end());
 	return{
 		on: (eventName,cb)=> onEvent(client,eventName,cb),
 		makeEvent: (eventName,arg)=> makeEvent(client,eventName,arg),
 		end: ()=>client.end(),
+		destroy: ()=>client.destroy(),
 	};
 };
